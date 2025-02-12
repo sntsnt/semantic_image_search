@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Image Search</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --input-bg: #f0f0f0;
+            --input-text: #000000;
+            --slider-track: #ddd;
+            --slider-thumb: #555;
+            --card-bg: #f9f9f9;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --input-bg: #1e1e1e;
+            --input-text: #e0e0e0;
+            --slider-track: #333;
+            --slider-thumb: #bbb;
+            --card-bg: #1e1e1e;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        textarea {
+            width: 600px;
+            height: 80px;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            resize: none;
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border: 1px solid var(--slider-thumb);
+            border-radius: 5px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Align everything to the left */
+            width: 500px;
+            gap: 10px;
+        }
+
+        .slider-container label {
+            width: 150px; /* Set a fixed width so both labels take equal space */
+            text-align: right; /* Ensures the text is aligned properly */
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1; /* Makes the sliders take up equal width */
+            max-width: 300px; /* Ensures sliders are the same width */
+        }
+
+        .slider-container span {
+            min-width: 50px; /* Prevents labels from shifting */
+            text-align: center;
+        }
+
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 300px; /* Adjust width */
+            height: 6px; /* Make the track slightly thicker */
+            background: var(--slider-track);
+            border-radius: 5px;
+            outline: none;
+            position: relative; /* Ensures proper rendering */
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--slider-thumb);
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative; /* Keeps alignment */
+        }
+
+        #distance_label {
+            min-width: 35px; /* Prevents the number from shifting too much */
+            text-align: center;
+        }
+
+        .results {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .image-container {
+            margin: 10px;
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+            cursor: pointer;
+            background-color: var(--card-bg);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        img {
+            width: 200px;
+            height: auto;
+            border-radius: 10px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .image-container.enlarged img {
+            width: 650px;
+        }
+
+        .similarity {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .image-path {
+            font-size: 12px;
+            color: gray;
+            word-wrap: break-word;
+            max-width: 250px;
+            margin: 5px auto;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .image-path:hover {
+            color: var(--text-color);
+        }
+
+        .copied-notification {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: black;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            display: none;
+            opacity: 0.9;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--slider-thumb);
+        }
+    </style>
+</head>
+<body>
+
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+
+    <h1>Semantic Image Search</h1>
+    <textarea id="query" placeholder="Type to search..." oninput="debouncedSearch()"></textarea>
+
+    <div class="controls">
+        <div class="slider-container">
+            <label for="top_k">Number of results:</label>
+            <input type="range" id="top_k" min="1" max="100" value="10" oninput="updateLabel('top_k_label', this.value, 0); debouncedSearch();">
+            <span id="top_k_label">10</span>
+        </div>
+        
+        <div class="slider-container">
+            <label for="max_distance">Distance threshold:</label>
+            <input type="range" id="max_distance" min="0" max="2" step="0.05" value="1.10" oninput="updateLabel('distance_label', this.value, 2); debouncedSearch();">
+            <span id="distance_label">1.10</span>
+        </div>
+    </div>
+
+    <div class="results" id="results"></div>
+
+    <!-- Notification -->
+    <div class="copied-notification" id="copyNotification">Copied to clipboard!</div>
+
+    <script>
+        let debounceTimer;
+
+        function debouncedSearch() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(searchImages, 300);
+        }
+
+        function updateLabel(labelId, value, precison) {
+            document.getElementById(labelId).textContent = parseFloat(value).toFixed(precison || 0);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const notification = document.getElementById("copyNotification");
+                notification.style.display = "block";
+
+                setTimeout(() => {
+                    notification.style.display = "none";
+                }, 1500);
+            }).catch(err => {
+                console.error("Failed to copy text:", err);
+            });
+        }
+
+
+        async function searchImages() {
+            const query = document.getElementById("query").value.trim();
+            const topK = document.getElementById("top_k").value;
+            const maxDistance = parseFloat(document.getElementById("max_distance").value);
+
+            if (!query) {
+                document.getElementById("results").innerHTML = "";
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8000/search?query=${encodeURIComponent(query)}&top_k=${topK}`);
+                const data = await response.json();
+
+                const resultsContainer = document.getElementById("results");
+                resultsContainer.innerHTML = ""; 
+
+                const filteredResults = data.results.filter(result => result.distance <= maxDistance);
+
+                if (filteredResults.length === 0) {
+                    resultsContainer.innerHTML = "<p>No matching images found.</p>";
+                    return;
+                }
+
+                filteredResults.forEach(result => {
+                    const imageContainer = document.createElement("div");
+                    imageContainer.classList.add("image-container");
+                    imageContainer.onclick = () => imageContainer.classList.toggle("enlarged");
+
+                    const img = document.createElement("img");
+                    img.src = result.image_path;
+                    img.alt = "Matching Image";
+
+                    const similarity = document.createElement("div");
+                    similarity.classList.add("similarity");
+                    similarity.innerText = `Distance: ${result.distance.toFixed(4)}`;
+
+                    const path = document.createElement("div");
+                    path.classList.add("image-path");
+                    path.innerText = result.image_path;
+                    path.onclick = (event) => {
+                        event.stopPropagation();
+                        copyToClipboard(result.image_path);
+                    };
+
+                    imageContainer.appendChild(img);
+                    imageContainer.appendChild(similarity);
+                    imageContainer.appendChild(path);
+                    resultsContainer.appendChild(imageContainer);
+                });
+            } catch (error) {
+                console.error("Error fetching search results:", error);
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle("dark-mode");
+            localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+        }
+
+        if (localStorage.getItem("theme") === "dark") {
+            document.body.classList.add("dark-mode");
+        }
+    </script>
+
+</body>
+</html>
