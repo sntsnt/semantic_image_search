@@ -1,5 +1,9 @@
 ## Semantic Image Search
 
+A local semantic image search tool using `llama3.2-vision:11b` for image -> text description, `all-MiniLM-L6-v2` for text description -> embedding vector, and ChromaDB for fast retrieval. Supports querying with natural language to find relevant images efficiently.
+
+![Semantic search](semantic_search.jpeg)
+
 ### Overview
 
 ```bash
@@ -9,12 +13,14 @@ positional arguments:
                             descriptions: process images and create descriptions,
                             embeddings: create embeddings,
                             query: query the database interactively,
-                            server: launch a server
+                            server: launch backend server
 
 options:
   -h, --help            show this help message and exit
   -p P                  Path to input directory with images
   -o O                  Output directory to save embeddings, defaults to input directory
+  -g G                  Glob pattern to filter folders to scan, relative to input directory. Example:
+                        "images/2024/**"
 ```
 
 ### Pipeline workflow
