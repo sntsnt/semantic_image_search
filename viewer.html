@@ -4,7 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semantic Image Search</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
     <style>
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: 1px; /* Optional: Adds a subtle spacing effect */
+        }
+
         :root {
             --bg-color: #ffffff;
             --text-color: #000000;
@@ -36,10 +44,10 @@
 
         textarea {
             width: 600px;
-            height: 80px;
+            height: 60px;
             padding: 10px;
             font-size: 16px;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             resize: none;
             background-color: var(--input-bg);
             color: var(--input-text);
@@ -123,7 +131,7 @@
         }
 
         img {
-            width: 200px;
+            width: 250px;
             height: auto;
             border-radius: 10px;
             transition: transform 0.3s ease-in-out;
@@ -184,6 +192,7 @@
             background: var(--slider-thumb);
         }
     </style>
+
 </head>
 <body>
 
@@ -272,7 +281,7 @@
 
                     const similarity = document.createElement("div");
                     similarity.classList.add("similarity");
-                    similarity.innerText = `Distance: ${result.distance.toFixed(4)}`;
+                    similarity.innerText = `${result.distance.toFixed(4)}`;
 
                     const path = document.createElement("div");
                     path.classList.add("image-path");
