@@ -28,19 +28,19 @@ options:
 1. Create descriptions for all (or some) images. This is the computationally expensive part.
 
 ```bash
-python pipeline.py descriptions -p ~/temp -o ~/temp/semantic_search
+python pipeline.py descriptions -p ~/images -o ~/images/semantic_search
 ```
 
 2. Compute embeddings for all descriptions using chromadb. This is very fast.
 
 ```bash
-python pipeline.py embeddings -p ~/temp -o ~/temp/semantic_search
+python pipeline.py embeddings -p ~/images -o ~/images/semantic_search
 ```
 
 3. Run query server
 
 ```bash
-python pipeline.py server -p ~/temp -o ~/temp/semantic_search
+python pipeline.py server -p ~/images -o ~/images/semantic_search
 ```
 
 4. Open `viewer.html`
